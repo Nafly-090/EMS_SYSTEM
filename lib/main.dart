@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'EMS System',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/welcome', // Set the initial route
+      initialRoute: '/home', // Set the initial route
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),

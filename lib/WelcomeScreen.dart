@@ -36,7 +36,7 @@ class _LogoSection extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 160.0),
+            SizedBox(height: 100.0),
             Image(
               image: AssetImage('assets/images/emslogo.png'),
               height: 300.0,

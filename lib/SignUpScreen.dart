@@ -13,7 +13,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // Form Key and Controllers
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -22,6 +21,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _isLoading = false;
   String? _errorMessage;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -32,7 +33,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  // Firebase Authentication Function
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -41,13 +41,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       try {
-        // Create user with Firebase Auth
         UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // Save user data to Firestore
         try {
           await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
             'name': _nameController.text.trim(),
@@ -55,7 +53,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             'createdAt': FieldValue.serverTimestamp(),
           });
         } catch (e) {
-          // Roll back user creation if Firestore fails
           await FirebaseAuth.instance.currentUser?.delete();
           setState(() {
             _errorMessage = 'Failed to save user data. Please try again.';
@@ -63,7 +60,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           return;
         }
 
-        // Navigate to home screen
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
         }
@@ -71,12 +67,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         setState(() {
           _errorMessage = _getAuthErrorMessage(e.code);
         });
-        print('Firebase Auth Error: ${e.code}');
       } catch (e) {
         setState(() {
           _errorMessage = 'An unexpected error occurred. Please try again.';
         });
-        print('Unexpected Error: $e');
       } finally {
         if (mounted) {
           setState(() {
@@ -87,7 +81,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Helper function to map Firebase error codes to user-friendly messages
   String _getAuthErrorMessage(String errorCode) {
     switch (errorCode) {
       case 'weak-password':
@@ -105,12 +98,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Reusable InputDecoration function for consistent styling
-  InputDecoration _inputDecoration(String labelText, IconData prefixIcon) {
+  InputDecoration _inputDecoration(String labelText, IconData prefixIcon, {Widget? suffixIcon}) {
     return InputDecoration(
       labelText: labelText,
       labelStyle: TextStyle(color: kGreyText),
       prefixIcon: Icon(prefixIcon, color: kGreyText),
+      suffixIcon: suffixIcon,
       filled: true,
       fillColor: kTextFieldBackground,
       border: OutlineInputBorder(
@@ -146,19 +139,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
+              children: [
                 Text(
                   'Create Your Account',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28.0,
                     fontWeight: FontWeight.bold,
-                    color: kAppNameColor,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 32.0),
-
-                // Name Field
                 TextFormField(
                   controller: _nameController,
                   decoration: _inputDecoration('Full Name', Icons.person),
@@ -177,8 +168,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 20.0),
-
-                // Email Field
                 TextFormField(
                   controller: _emailController,
                   decoration: _inputDecoration('Email Address', Icons.email_outlined),
@@ -199,12 +188,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 20.0),
-
-                // Password Field
                 TextFormField(
                   controller: _passwordController,
-                  decoration: _inputDecoration('Password', Icons.lock_outline),
-                  obscureText: true,
+                  decoration: _inputDecoration(
+                    'Password',
+                    Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        color: kGreyText,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _obscurePassword,
                   style: TextStyle(color: kWhite),
                   onChanged: (value) {
                     _formKey.currentState!.validate();
@@ -220,16 +221,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters long';
                     }
+                    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).+$').hasMatch(value)) {
+                      return 'Password must include at least one letter, one number, and one symbol';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20.0),
-
-                // Confirm Password Field
                 TextFormField(
                   controller: _confirmPasswordController,
-                  decoration: _inputDecoration('Confirm Password', Icons.lock_reset),
-                  obscureText: true,
+                  decoration: _inputDecoration(
+                    'Confirm Password',
+                    Icons.lock_reset,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        color: kGreyText,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _obscureConfirmPassword,
                   style: TextStyle(color: kWhite),
                   onChanged: (value) {
                     _formKey.currentState!.validate();
@@ -246,8 +262,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 32.0),
-
-                // Sign Up Button
                 if (_isLoading)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -269,8 +283,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
-
-                // Error Message Display
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
@@ -280,15 +292,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-
                 const SizedBox(height: 24.0),
-
-                // Link to Login Screen
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Already have an account?",
+                      'Already have an account?',
                       style: TextStyle(color: kGreyText),
                     ),
                     TextButton(

@@ -12,3 +12,4 @@ const Color kWhite = Color(0xfff4f6ff);
 // --- NEW COLORS FOR LOGIN SCREEN ---
 const Color kTextFieldBackground = Color(0xFF3A3E59); // Background for text fields
 const Color kGreyText = Color(0xFFBEC2E3); // Color for labels and subtitles
+const Color kLightBgColor = Color(0xFFEAF1F9); // Light background for the list

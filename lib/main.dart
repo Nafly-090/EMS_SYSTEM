@@ -5,14 +5,20 @@ import 'package:ems/LoginScreen.dart';
 
 import 'HomeScreen.dart';
 import 'SignUpScreen.dart';
-
-// import 'firebase_options.dart';
+import 'firebase_options.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+    return;
+  }
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {

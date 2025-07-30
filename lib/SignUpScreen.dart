@@ -1,5 +1,3 @@
-// lib/SignUpScreen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,25 +13,18 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // --- Form Key and Controllers ---
+  // Form Key and Controllers
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
-  // --- Loading and Error State ---
   bool _isLoading = false;
   String? _errorMessage;
 
-  // --- Real-time Validation State ---
-  // We'll use these to trigger validation on changed values without immediately showing errors
-  // until the user attempts to submit or moves away from the field.
-  // For simpler real-time, we can rely on onChanged calling validate.
-
   @override
   void dispose() {
-    // Clean up the controllers when the widget is disposed.
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -41,33 +32,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  // --- Firebase Authentication Function ---
+  // Firebase Authentication Function
   Future<void> _signUp() async {
-    // Validate all fields first
     if (_formKey.currentState!.validate()) {
-      // Form is valid, now proceed with sign-up
       setState(() {
-        _isLoading = true; // Show loading indicator
-        _errorMessage = null; // Clear previous errors
+        _isLoading = true;
+        _errorMessage = null;
       });
 
       try {
-        // Attempt to create a new user with email and password
+        // Create user with Firebase Auth
         UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // --- Save User's Basic Info to Firestore ---
-        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'createdAt': FieldValue.serverTimestamp(), // Store timestamp
-        });
+        // Save user data to Firestore
+        try {
+          await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        } catch (e) {
+          // Roll back user creation if Firestore fails
+          await FirebaseAuth.instance.currentUser?.delete();
+          setState(() {
+            _errorMessage = 'Failed to save user data. Please try again.';
+          });
+          return;
+        }
 
-        // --- Successful Sign-up Navigation ---
-        Navigator.pushReplacementNamed(context, '/home');
-
+        // Navigate to home screen
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       } on FirebaseAuthException catch (e) {
         setState(() {
           _errorMessage = _getAuthErrorMessage(e.code);
@@ -88,7 +87,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // --- Helper function to map Firebase error codes to user-friendly messages ---
+  // Helper function to map Firebase error codes to user-friendly messages
   String _getAuthErrorMessage(String errorCode) {
     switch (errorCode) {
       case 'weak-password':
@@ -106,7 +105,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // --- Reusable InputDecoration function for consistent styling ---
+  // Reusable InputDecoration function for consistent styling
   InputDecoration _inputDecoration(String labelText, IconData prefixIcon) {
     return InputDecoration(
       labelText: labelText,
@@ -118,8 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide.none,
       ),
-      // The errorText will be shown when validation fails
-      errorStyle: const TextStyle(fontSize: 12), // Adjust error text style if needed
+      errorStyle: const TextStyle(fontSize: 12),
     );
   }
 
@@ -155,26 +153,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   style: TextStyle(
                     fontSize: 28.0,
                     fontWeight: FontWeight.bold,
-                    color: kAppNameColor, // Using kAppNameColor for title
+                    color: kAppNameColor,
                   ),
                 ),
                 const SizedBox(height: 32.0),
 
-                // --- Name Field ---
+                // Name Field
                 TextFormField(
                   controller: _nameController,
                   decoration: _inputDecoration('Full Name', Icons.person),
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
                   style: TextStyle(color: kWhite),
-                  // Real-time validation: Re-validate when the value changes
                   onChanged: (value) {
-                    // We can directly call validate here. It will update the error text
-                    // if the value becomes invalid.
                     _formKey.currentState!.validate();
                   },
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
+                    value = value?.trim();
+                    if (value == null || value.isEmpty) {
                       return 'Please enter your full name';
                     }
                     return null;
@@ -182,7 +178,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20.0),
 
-                // --- Email Field ---
+                // Email Field
                 TextFormField(
                   controller: _emailController,
                   decoration: _inputDecoration('Email Address', Icons.email_outlined),
@@ -192,10 +188,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     _formKey.currentState!.validate();
                   },
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
+                    value = value?.trim();
+                    if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value.trim())) {
+                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
                       return 'Please enter a valid email address';
                     }
                     return null;
@@ -203,7 +200,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20.0),
 
-                // --- Password Field ---
+                // Password Field
                 TextFormField(
                   controller: _passwordController,
                   decoration: _inputDecoration('Password', Icons.lock_outline),
@@ -211,16 +208,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   style: TextStyle(color: kWhite),
                   onChanged: (value) {
                     _formKey.currentState!.validate();
-                    // Also re-validate confirm password if it's already filled
                     if (_confirmPasswordController.text.isNotEmpty) {
                       _formKey.currentState!.validate();
                     }
                   },
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
+                    value = value?.trim();
+                    if (value == null || value.isEmpty) {
                       return 'Please enter your password';
                     }
-                    if (value.trim().length < 6) {
+                    if (value.length < 6) {
                       return 'Password must be at least 6 characters long';
                     }
                     return null;
@@ -228,7 +225,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20.0),
 
-                // --- Confirm Password Field ---
+                // Confirm Password Field
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: _inputDecoration('Confirm Password', Icons.lock_reset),
@@ -238,10 +235,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     _formKey.currentState!.validate();
                   },
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
+                    value = value?.trim();
+                    if (value == null || value.isEmpty) {
                       return 'Please confirm your password';
                     }
-                    if (value.trim() != _passwordController.text.trim()) {
+                    if (value != _passwordController.text.trim()) {
                       return 'Passwords do not match';
                     }
                     return null;
@@ -249,7 +247,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 32.0),
 
-                // --- Sign Up Button ---
+                // Sign Up Button
                 if (_isLoading)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -257,7 +255,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   )
                 else
                   ElevatedButton(
-                    onPressed: _signUp,
+                    onPressed: _isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kPrimaryBlue,
                       foregroundColor: kWhite,
@@ -272,7 +270,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
 
-                // --- Error Message Display ---
+                // Error Message Display
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
@@ -285,7 +283,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 const SizedBox(height: 24.0),
 
-                // --- Link to Login Screen ---
+                // Link to Login Screen
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

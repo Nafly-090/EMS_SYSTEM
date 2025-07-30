@@ -38,8 +38,8 @@ class _LogoSection extends StatelessWidget {
           children: [
             SizedBox(height: 160.0),
             Image(
-              image: AssetImage('assets/images/logo.png'),
-              height: 150.0,
+              image: AssetImage('assets/images/emslogo.png'),
+              height: 300.0,
             ),
           ],
         ),

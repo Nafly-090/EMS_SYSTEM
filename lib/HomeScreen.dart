@@ -50,7 +50,9 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: isKeyboardVisible
           ? null
           : FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushNamed(context, '/AddnewEmy');
+        },
         backgroundColor: kPrimaryBlue,
         // FIX #2: The default shape is a circle. This code creates a perfect circle.
         shape: const CircleBorder(), // Explicitly define the shape as a circle.

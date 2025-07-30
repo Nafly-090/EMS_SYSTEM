@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ems/WelcomeScreen.dart';
 import 'package:ems/LoginScreen.dart';
+import 'package:ems/AddNewEmp.dart';
 
 import 'HomeScreen.dart';
 import 'SignUpScreen.dart';
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home' : (context) => const HomeScreen(),
+        '/AddnewEmy' : (context) => const AddNewEmployeeScreen(),
       },
     );
   }

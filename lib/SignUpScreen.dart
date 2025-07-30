@@ -1,5 +1,10 @@
+// lib/SignUpScreen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ems/colors.dart';
+import 'package:ems/LoginScreen.dart';
 import 'package:ems/WelcomeScreen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -10,23 +15,29 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  // --- Form Key and Controllers ---
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController(); // Added for name
 
   // --- Loading and Error State ---
   bool _isLoading = false;
   String? _errorMessage;
 
+  // --- Real-time Validation State ---
+  // We'll use these to trigger validation on changed values without immediately showing errors
+  // until the user attempts to submit or moves away from the field.
+  // For simpler real-time, we can rely on onChanged calling validate.
+
   @override
   void dispose() {
     // Clean up the controllers when the widget is disposed.
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _nameController.dispose();
     super.dispose();
   }
 
@@ -43,43 +54,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
       try {
         // Attempt to create a new user with email and password
         UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(), // Use trim() to remove leading/trailing whitespace
+          email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // --- Optional: Save user's name to Firestore or other storage ---
-        // If you want to store the user's name, you'd typically do it here.
-        // For the internship task, this might be extra but good to show.
-        // You'll need to import 'cloud_firestore.dart' and initialize it.
-        /*
+        // --- Save User's Basic Info to Firestore ---
         await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'createdAt': FieldValue.serverTimestamp(), // Store timestamp
         });
-        */
 
         // --- Successful Sign-up Navigation ---
-        // If sign-up is successful, navigate to the Home Screen (or wherever appropriate)
-        // Using pushReplacementNamed ensures the user can't go back to the sign-up screen
-        // easily without logging out.
         Navigator.pushReplacementNamed(context, '/home');
 
       } on FirebaseAuthException catch (e) {
-        // Handle specific Firebase Auth errors
         setState(() {
           _errorMessage = _getAuthErrorMessage(e.code);
         });
         print('Firebase Auth Error: ${e.code}');
       } catch (e) {
-        // Handle other potential errors
         setState(() {
           _errorMessage = 'An unexpected error occurred. Please try again.';
         });
         print('Unexpected Error: $e');
       } finally {
-        // Hide loading indicator regardless of success or failure
-        if (mounted) { // Check if the widget is still in the widget tree
+        if (mounted) {
           setState(() {
             _isLoading = false;
           });
@@ -106,34 +106,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  // --- Reusable InputDecoration function for consistent styling ---
+  InputDecoration _inputDecoration(String labelText, IconData prefixIcon) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: TextStyle(color: kGreyText),
+      prefixIcon: Icon(prefixIcon, color: kGreyText),
+      filled: true,
+      fillColor: kTextFieldBackground,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide.none,
+      ),
+      // The errorText will be shown when validation fails
+      errorStyle: const TextStyle(fontSize: 12), // Adjust error text style if needed
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kDarkBlue,
       appBar: AppBar(
         title: const Text('Sign Up'),
+        backgroundColor: kDarkBlue,
+        foregroundColor: kWhite,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          color: kWhite,
           onPressed: () {
-            Navigator.pushNamed(context, '/welcome');
+            Navigator.pushReplacementNamed(context, '/welcome');
           },
         ),
-        centerTitle: true,
       ),
       body: Center(
-        child: SingleChildScrollView( // Allows scrolling if content overflows
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children horizontally
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const Text(
+                Text(
                   'Create Your Account',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28.0,
                     fontWeight: FontWeight.bold,
+                    color: kAppNameColor, // Using kAppNameColor for title
                   ),
                 ),
                 const SizedBox(height: 32.0),
@@ -141,16 +163,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // --- Name Field ---
                 TextFormField(
                   controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    prefixIcon: const Icon(Icons.person),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+                  decoration: _inputDecoration('Full Name', Icons.person),
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
-                  // Validator for name
+                  style: TextStyle(color: kWhite),
+                  // Real-time validation: Re-validate when the value changes
+                  onChanged: (value) {
+                    // We can directly call validate here. It will update the error text
+                    // if the value becomes invalid.
+                    _formKey.currentState!.validate();
+                  },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your full name';
@@ -163,20 +185,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // --- Email Field ---
                 TextFormField(
                   controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email Address',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+                  decoration: _inputDecoration('Email Address', Icons.email_outlined),
                   keyboardType: TextInputType.emailAddress,
-                  // Validator for email
+                  style: TextStyle(color: kWhite),
+                  onChanged: (value) {
+                    _formKey.currentState!.validate();
+                  },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
                     }
-                    // Basic email format validation
                     if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value.trim())) {
                       return 'Please enter a valid email address';
                     }
@@ -188,15 +206,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // --- Password Field ---
                 TextFormField(
                   controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  obscureText: true, // Hides the password
-                  // Validator for password
+                  decoration: _inputDecoration('Password', Icons.lock_outline),
+                  obscureText: true,
+                  style: TextStyle(color: kWhite),
+                  onChanged: (value) {
+                    _formKey.currentState!.validate();
+                    // Also re-validate confirm password if it's already filled
+                    if (_confirmPasswordController.text.isNotEmpty) {
+                      _formKey.currentState!.validate();
+                    }
+                  },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your password';
@@ -212,20 +231,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // --- Confirm Password Field ---
                 TextFormField(
                   controller: _confirmPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: const Icon(Icons.lock_reset),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  obscureText: true, // Hides the password
-                  // Validator for confirming password
+                  decoration: _inputDecoration('Confirm Password', Icons.lock_reset),
+                  obscureText: true,
+                  style: TextStyle(color: kWhite),
+                  onChanged: (value) {
+                    _formKey.currentState!.validate();
+                  },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please confirm your password';
                     }
-                    // Check if password and confirm password match
                     if (value.trim() != _passwordController.text.trim()) {
                       return 'Passwords do not match';
                     }
@@ -235,15 +250,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 32.0),
 
                 // --- Sign Up Button ---
-                if (_isLoading) // Show loading indicator if _isLoading is true
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(child: CircularProgressIndicator()),
+                if (_isLoading)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(child: CircularProgressIndicator(color: kPrimaryBlue)),
                   )
                 else
                   ElevatedButton(
-                    onPressed: _signUp, // Call the sign-up function
+                    onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: kPrimaryBlue,
+                      foregroundColor: kWhite,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
@@ -251,17 +268,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     child: const Text(
                       'Sign Up',
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
 
                 // --- Error Message Display ---
-                if (_errorMessage != null) // Show error message if it exists
+                if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                      style: TextStyle(color: Colors.red[300], fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -272,12 +289,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account?"),
+                    Text(
+                      "Already have an account?",
+                      style: TextStyle(color: kGreyText),
+                    ),
                     TextButton(
                       onPressed: () {
-                        // Navigate to the login screen
                         Navigator.pushReplacementNamed(context, '/login');
                       },
+                      style: TextButton.styleFrom(foregroundColor: kGreyText),
                       child: const Text('Login'),
                     ),
                   ],

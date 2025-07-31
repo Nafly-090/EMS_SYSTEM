@@ -7,11 +7,13 @@ A comprehensive Flutter application designed for managing employee records. It f
 
 ## App Preview
 
-|                                    Login Screen                                     |                            Sign Up Screen                             |                                 Forgot Password                                 |
-|:-----------------------------------------------------------------------------------:|:---------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|
-|         <img src="assets/output/login.png" width="250" alt="Login Screen">          | <img src="assets/output/signup.png" width="250" alt="Sign Up Screen"> | <img src="assets/output/forgetps.png" width="250" alt="Forgot Password Screen"> |
-|                                   **Home Screen**                                   |                           **Add Employee**                            |                               **Dialogs Delete**                                |
-| <img src="assets/output/home.png" width="250" alt="Home Screen with Employee List"> | <img src="assets/output/addnew.png" width="250" alt="Add/Edit Form">  | <img src="assets/output/delete.png" width="250" alt="Delete/Sign Out Dialogs">  |
+|                                      Login Screen                                      |                            Sign Up Screen                             |                                 Forgot Password                                 |
+|:--------------------------------------------------------------------------------------:|:---------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|
+|           <img src="assets/output/login.png" width="250" alt="Login Screen">           | <img src="assets/output/signup.png" width="250" alt="Sign Up Screen"> | <img src="assets/output/forgetps.png" width="250" alt="Forgot Password Screen"> |
+|                                    **Home Screen**                                     |                           **Add Employee**                            |                               **Dialogs Delete**                                |
+|  <img src="assets/output/home.png" width="250" alt="Home Screen with Employee List">   | <img src="assets/output/addnew.png" width="250" alt="Add/Edit Form">  | <img src="assets/output/delete.png" width="250" alt="Delete/Sign Out Dialogs">  |
+|                                   **Welcome Screen**                                   |                          **Update Employee**                          |                               **Dialogs Signout**                               |
+| <img src="assets/output/welcome.png" width="250" alt="Home Screen with Employee List"> | <img src="assets/output/update.png" width="250" alt="Add/Edit Form">  | <img src="assets/output/signout.png" width="250" alt="Delete/Sign Out Dialogs"> |
 
 ---
 

@@ -48,3 +48,4 @@ android/app/google-services.json
 /android/key.properties
 /android/local.properties
 /android/.gradle
+firebase.json

@@ -62,8 +62,8 @@ Follow these steps to get the project up and running on your local machine.
 
 ### 2. Clone the Repository
 ```bash
-git clone <https://github.com/Nafly-090/EMS_SYSTEM.git>
-cd <EMS_SYSTEM>>
+git clone https://github.com/Nafly-090/EMS_SYSTEM.git
+cd EMS_SYSTEM
 ```
 
 ### 3. Install Dependencies

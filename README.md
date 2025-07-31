@@ -15,10 +15,11 @@ A comprehensive Flutter application designed for managing employee records. It f
 |                                   **Welcome Screen**                                   |                          **Update Employee**                          |                               **Dialogs Signout**                               |
 | <img src="assets/output/welcome.png" width="250" alt="Home Screen with Employee List"> | <img src="assets/output/update.png" width="250" alt="Add/Edit Form">  | <img src="assets/output/signout.png" width="250" alt="Delete/Sign Out Dialogs"> |
 
-Emloyee Details  if Firebase 
+
+**Employee Details  in Firebase** 
 ![img_1.png](assets/output/img_1.png)
 
-Admin Users
+**Admin Users**
 ![img_2.png](assets/output/img_2.png)
 
 
@@ -61,8 +62,8 @@ Follow these steps to get the project up and running on your local machine.
 
 ### 2. Clone the Repository
 ```bash
-git clone <your-repository-url>
-cd <your-project-directory>
+git clone <https://github.com/Nafly-090/EMS_SYSTEM.git>
+cd <EMS_SYSTEM>>
 ```
 
 ### 3. Install Dependencies

@@ -1,18 +1,18 @@
 
+
 ---
 
-# EMS - Employee Management System Flutter App
+# ESM System - Employee Management Flutter App
 
-A comprehensive Flutter application designed for managing employee records. It features a modern user interface, Firebase authentication (Email/Password), and real-time data synchronization with Cloud Firestore for full CRUD (Create, Read, Update, Delete,Search) operations.
+A comprehensive Flutter application designed for managing employee records. It features a modern user interface, Firebase authentication (Email/Password & Google Sign-In), and real-time data synchronization with Cloud Firestore for full CRUD (Create, Read, Update, Delete) operations.
 
 ## 📸 App Preview
 
-| Login Screen | Sign Up Screen | Forgot Password |
-| :---: | :---: | :---: |
-| <img src="" width="250" alt="Login Screen"> | <img src="" width="250" alt="Sign Up Screen"> | <img src="" width="250" alt="Forgot Password Screen"> |
-| **Home Screen** | **Add/Edit Employee** | **Dialogs** |
-| <img src="" width="250" alt="Home Screen with Employee List"> | <img src="" width="250" alt="Add/Edit Form"> | <img src="" width="250" alt="Delete/Sign Out Dialogs"> |
-*(Note: Replace the empty `src=""` with links to your actual screenshots)*
+|                          Login Screen                          | Sign Up Screen | Forgot Password |
+|:--------------------------------------------------------------:| :---: | :---: |
+| <img src="assets/output/login" width="250" alt="Login Screen"> | <img src="" width="250" alt="Sign Up Screen"> | <img src="" width="250" alt="Forgot Password Screen"> |
+|                        **Home Screen**                         | **Add/Edit Employee** | **Dialogs** |
+| <img src="" width="250" alt="Home Screen with Employee List">  | <img src="" width="250" alt="Add/Edit Form"> | <img src="" width="250" alt="Delete/Sign Out Dialogs"> |
 
 ---
 
@@ -36,8 +36,8 @@ A comprehensive Flutter application designed for managing employee records. It f
 -   **Modern Design:** A clean, modern UI with a consistent color scheme and layout across all screens.
 -   **Dark Theme:** Utilizes a visually appealing dark theme for forms and primary UI elements.
 -   **Responsive Layout:** The UI adapts to the on-screen keyboard by hiding the bottom navigation bar, preventing layout overflow issues.
--   **Real-time Validation:** Forms provide instant feedback to the user on input errors (e.g., invalid email format, weak password).
--   **Live Search:** The home screen features a search bar to filter the employee list by **name** or **role** in real-time.
+-   **Real-time Validation:** Forms provide instant feedback to the user on input errors (e.g., invalid email format, invalid phone number length).
+-   **Live Search:** The home screen features a search bar to filter the employee list in real-time. The search is case-insensitive and works on both **employee name** and **role**.
 -   **User Feedback:** The app provides clear feedback for actions using `SnackBar` messages (for success/error on CUD operations) and interactive `AlertDialogs` for confirmation.
 -   **Loading Indicators:** Buttons and lists show loading spinners during asynchronous operations to inform the user that something is happening.
 
@@ -107,3 +107,4 @@ You are now ready to run the app. Connect a device or start an emulator/simulato
 ```bash
 flutter run
 ```
+

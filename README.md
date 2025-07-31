@@ -12,7 +12,6 @@ A comprehensive Flutter application designed for managing employee records. It f
 | <img src="" width="250" alt="Login Screen"> | <img src="" width="250" alt="Sign Up Screen"> | <img src="" width="250" alt="Forgot Password Screen"> |
 | **Home Screen** | **Add/Edit Employee** | **Dialogs** |
 | <img src="" width="250" alt="Home Screen with Employee List"> | <img src="" width="250" alt="Add/Edit Form"> | <img src="" width="250" alt="Delete/Sign Out Dialogs"> |
-*(Note: Replace the empty `src=""` with links to your actual screenshots)*
 
 ---
 

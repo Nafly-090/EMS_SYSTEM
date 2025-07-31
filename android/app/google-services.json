@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "266994790962",
+    "project_id": "emssystem-a129c",
+    "storage_bucket": "emssystem-a129c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266994790962:android:7871411062c1d50bda422b",
+        "android_client_info": {
+          "package_name": "com.example.ems"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtvrB31hABRheRLwSADcc0OaIbKC0CTPg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

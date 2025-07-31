@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-// This file contains all the color constants used throughout the app.
-// Keeping them in one place makes it easy to update the theme later.
 
 const Color kDarkBlue = Color(0xFF202342); // The dark background color
 const Color kPrimaryBlue = Color(0xFF0D63D8); // The vibrant blue for buttons

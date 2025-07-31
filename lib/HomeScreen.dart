@@ -1,4 +1,3 @@
-// home.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'edit_employee_screen.dart';
 import 'colors.dart';
 import 'employee_model.dart';
 
-// --- STEP 1: CONVERT TO A STATEFUL WIDGET ---
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -76,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// --- STEP 2: UPDATE THE HEADER WIDGET ---
 class _Header extends StatelessWidget {
   // It now accepts a function to call when the text changes.
   final Function(String) onSearchChanged;
@@ -130,7 +127,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// --- STEP 3: UPDATE THE EMPLOYEE LIST WIDGET ---
 class _EmployeeList extends StatelessWidget {
 
   final String searchQuery;

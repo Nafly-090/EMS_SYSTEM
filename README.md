@@ -7,11 +7,11 @@ A comprehensive Flutter application designed for managing employee records. It f
 
 ## App Preview
 
-|                            Login Screen                            |                                  Sign Up Screen                                  | Forgot Password |
-|:------------------------------------------------------------------:|:--------------------------------------------------------------------------------:| :---: |
-| <img src="assets/output/login.png" width="250" alt="Login Screen"> | <img src="<img src="assets/output/signup.png"" width="250" alt="Sign Up Screen"> | <img src="<img src="assets/output/login.png"" width="250" alt="Forgot Password Screen"> |
-|                          **Home Screen**                           |                              **Add/Edit Employee**                               | **Dialogs** |
-|   <img src="" width="250" alt="Home Screen with Employee List">    |                   <img src="" width="250" alt="Add/Edit Form">                   | <img src="" width="250" alt="Delete/Sign Out Dialogs"> |
+|                            Login Screen                            |                                 Sign Up Screen                                  |                                      Forgot Password                                      |
+|:------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------:|
+| <img src="assets/output/login.png" width="250" alt="Login Screen"> | <img src="<img src="assets/output/signup.png" width="250" alt="Sign Up Screen"> | <img src="<img src="assets/output/forgetps.png" width="250" alt="Forgot Password Screen"> |
+|                          **Home Screen**                           |                              **Add/Edit Employee**                              |                                        **Dialogs**                                        |
+|   <img src="" width="250" alt="Home Screen with Employee List">    |                  <img src="" width="250" alt="Add/Edit Form">                   |                  <img src="" width="250" alt="Delete/Sign Out Dialogs">                   |
 *(Note: Replace the empty `src=""` with links to your actual screenshots)*
 
 ---

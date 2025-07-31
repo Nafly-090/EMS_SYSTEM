@@ -64,34 +64,48 @@ Run the following command in your project's root directory to install all the re
 flutter pub get
 ```
 
-### 4. Firebase Setup
-This project requires a Firebase backend. Follow these steps carefully.
+### 4. Firebase Setup (CLI Method)
+This project requires a Firebase backend. This guide uses the recommended Firebase CLI and FlutterFire CLI for a fast and automated setup.
 
-1.  **Create a Firebase Project:**
-    -   Go to the [Firebase Console](https://console.firebase.google.com/).
-    -   Click on "Add project" and follow the on-screen instructions to create a new project.
+1.  **Install Firebase CLI:**
+    If you don't have it, install the Firebase command-line tools globally by running:
+    ```bash
+    npm install -g firebase-tools
+    ```
 
-2.  **Register Your App:**
-    -   Inside your new project, click the `</>` (web), iOS, or Android icon to register your app. You'll need to provide a package name (for Android, e.g., `com.example.ems_system`) or a bundle ID (for iOS).
-    -   Follow the setup steps. For Android, you will download a `google-services.json` file. For iOS, you will download a `GoogleService-Info.plist` file.
+2.  **Log into Firebase:**
+    ```bash
+    firebase login
+    ```
+    This will open a browser window for you to log in with your Google account.
 
-3.  **Place Firebase Config Files:**
-    -   **Android:** Place the downloaded `google-services.json` file in the `android/app/` directory.
-    -   **iOS:** Place the downloaded `GoogleService-Info.plist` file in the `ios/Runner/` directory using Xcode.
+3.  **Install and Configure FlutterFire:**
+    -   Activate the FlutterFire CLI by running:
+        ```bash
+        dart pub global activate flutterfire_cli
+        ```
+    -   Now, connect your Flutter project to Firebase. Run the following command from the root of your project:
+        ```bash
+        flutterfire configure
+        ```
+    -   This command will:
+        -   Ask you to select a Firebase project (it will list all projects in your account).
+        -   Automatically register your Android, iOS, and Web apps with that project.
+        -   Generate a `lib/firebase_options.dart` file in your project (this is crucial).
 
-4.  **Enable Authentication Methods:**
-    -   In the Firebase Console, go to **Authentication** (in the Build section).
-    -   Click on the "Sign-in method" tab.
-    -   Enable **Email/Password**.
-    -   Enable **Google**. You may need to provide a support email.
+4.  **Enable Services in the Firebase Console:**
+    The CLI connects your app, but you still need to enable the services manually in the [Firebase Console](https://console.firebase.google.com/).
+    -   **Authentication:**
+        -   Go to **Authentication** -> **Sign-in method**.
+        -   Enable **Email/Password**.
+        -   Enable **Google** (you may need to provide a project support email).
+    -   **Cloud Firestore:**
+        -   Go to **Firestore Database** -> **Create database**.
+        -   Start in **Test mode** for initial development. This allows open read/write access.
+        -   *Warning: Remember to configure proper security rules before deploying to production!*
+        -   Choose a server location.
 
-5.  **Set Up Cloud Firestore:**
-    -   In the Firebase Console, go to **Firestore Database** (in the Build section).
-    -   Click "Create database".
-    -   Start in **Test mode** for initial development (this allows open read/write access). **Remember to set up security rules before going to production!**
-    -   Choose a server location.
-
-6.  **Create the 'Employee' Collection:**
+5.  **Create the 'Employee' Collection:**
     -   Once your database is created, click on **"+ Start collection"**.
     -   Set the Collection ID to `Employee`.
     -   Add your first document with the following fields to match the `employee_model.dart`:

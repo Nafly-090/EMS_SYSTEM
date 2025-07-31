@@ -1,4 +1,4 @@
-
+// home.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +7,20 @@ import 'edit_employee_screen.dart';
 import 'colors.dart';
 import 'employee_model.dart';
 
-class HomeScreen extends StatelessWidget {
+// --- STEP 1: CONVERT TO A STATEFUL WIDGET ---
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // This state variable will hold the text from the search bar.
+  String _searchQuery = '';
+
+  @override
   Widget build(BuildContext context) {
-    // THIS IS THE KEY: We check if the keyboard is visible.
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
@@ -21,7 +29,13 @@ class HomeScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            _Header(),
+            _Header(
+              onSearchChanged: (query) {
+                setState(() {
+                  _searchQuery = query;
+                });
+              },
+            ),
             Expanded(
               child: Container(
                 padding: const EdgeInsets.only(top: 24.0),
@@ -37,7 +51,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     _TopEmployeeHeader(),
                     const SizedBox(height: 16),
-                    _EmployeeList(),
+                    _EmployeeList(searchQuery: _searchQuery),
                   ],
                 ),
               ),
@@ -45,8 +59,6 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      // --- FIX #1: Conditionally hide the FloatingActionButton ---
-      // If the keyboard is visible, the FAB will be null (hidden).
       floatingActionButton: isKeyboardVisible
           ? null
           : FloatingActionButton(
@@ -54,21 +66,23 @@ class HomeScreen extends StatelessWidget {
           Navigator.pushNamed(context, '/AddnewEmy');
         },
         backgroundColor: kPrimaryBlue,
-        // FIX #2: The default shape is a circle. This code creates a perfect circle.
-        shape: const CircleBorder(), // Explicitly define the shape as a circle.
+        shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white),
         elevation: 4.0,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // --- FIX #1: Conditionally hide the BottomNavigationBar ---
-      // If the keyboard is visible, the bottom navigation bar will be null (hidden).
-      bottomNavigationBar: isKeyboardVisible ? null : _BottomNavBar(),
+      bottomNavigationBar: isKeyboardVisible ? null : const _BottomNavBar(),
     );
   }
 }
 
-// --- HEADER WIDGET (No changes) ---
+// --- STEP 2: UPDATE THE HEADER WIDGET ---
 class _Header extends StatelessWidget {
+  // It now accepts a function to call when the text changes.
+  final Function(String) onSearchChanged;
+
+  const _Header({required this.onSearchChanged});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -94,8 +108,11 @@ class _Header extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           TextField(
+            // The onChanged property is the key here.
+            onChanged: onSearchChanged,
+            style: const TextStyle(color: kDarkBlue),
             decoration: InputDecoration(
-              hintText: 'Search',
+              hintText: 'Search by name or role...',
               hintStyle: TextStyle(color: Colors.grey.shade400),
               prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
               filled: true,
@@ -113,7 +130,61 @@ class _Header extends StatelessWidget {
   }
 }
 
-// --- "TOP EMPLOY" HEADER WIDGET (No changes) ---
+// --- STEP 3: UPDATE THE EMPLOYEE LIST WIDGET ---
+class _EmployeeList extends StatelessWidget {
+
+  final String searchQuery;
+
+  const _EmployeeList({required this.searchQuery});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('Employee').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No employees found.'));
+          }
+
+          final allEmployees = snapshot.data!.docs.map((doc) => Employee.fromFirestore(doc)).toList();
+
+          // If the search query is empty, show all employees.
+          // Otherwise, filter the list.
+          final filteredEmployees = searchQuery.isEmpty
+              ? allEmployees
+              : allEmployees.where((employee) {
+            final nameLower = employee.name.toLowerCase();
+            final roleLower = employee.role.toLowerCase();
+            final searchLower = searchQuery.toLowerCase();
+
+            // Return true if the name OR the role contains the search query.
+            return nameLower.contains(searchLower) || roleLower.contains(searchLower);
+          }).toList();
+
+          if (filteredEmployees.isEmpty) {
+            return const Center(child: Text('No matching employees found.'));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: filteredEmployees.length,
+            itemBuilder: (context, index) {
+              return EmployeeCard(employee: filteredEmployees[index]);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _TopEmployeeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -143,50 +214,13 @@ class _TopEmployeeHeader extends StatelessWidget {
   }
 }
 
-// --- EMPLOYEE LIST WIDGET (No changes) ---
-class _EmployeeList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('Employee').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No employees found.'));
-          }
-          final employees = snapshot.data!.docs.map((doc) => Employee.fromFirestore(doc)).toList();
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: employees.length,
-            itemBuilder: (context, index) {
-              return EmployeeCard(employee: employees[index]);
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-
-
 class EmployeeCard extends StatelessWidget {
   final Employee employee;
   const EmployeeCard({super.key, required this.employee});
 
   Future<void> _deleteEmployee(BuildContext context, String employeeId) async {
     try {
-      // Get the document reference and delete it
       await FirebaseFirestore.instance.collection('Employee').doc(employeeId).delete();
-
-      // Show a success message
-      // Use mounted check for safety in async gaps
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -195,7 +229,6 @@ class EmployeeCard extends StatelessWidget {
         ),
       );
     } catch (e) {
-      // Show an error message if something goes wrong
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -206,8 +239,6 @@ class EmployeeCard extends StatelessWidget {
     }
   }
 
-  // --- CONFIRMATION DIALOG ---
-  // This method shows the confirmation dialog before deleting.
   Future<void> _showDeleteConfirmationDialog(BuildContext context, String employeeId, String employeeName) async {
     return showDialog<void>(
       context: context,
@@ -216,26 +247,13 @@ class EmployeeCard extends StatelessWidget {
         return AlertDialog(
           backgroundColor: kDarkBlue,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-          title: Text(
-            'Confirm Deletion',
-            style: TextStyle(
-              color: kWhite,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          title: Text('Confirm Deletion', style: TextStyle(color: kWhite, fontSize: 20, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text(
-                  'Are you sure you want to delete $employeeName?',
-                  style: TextStyle(color: kWhite, fontSize: 16),
-                ),
+                Text('Are you sure you want to delete $employeeName?', style: TextStyle(color: kWhite, fontSize: 16)),
                 const SizedBox(height: 8),
-                Text(
-                  'This action cannot be undone.',
-                  style: TextStyle(color: kGreyText, fontSize: 14),
-                ),
+                Text('This action cannot be undone.', style: TextStyle(color: kGreyText, fontSize: 14)),
               ],
             ),
           ),
@@ -247,14 +265,7 @@ class EmployeeCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
               ),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  color: kWhite,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: kWhite, fontSize: 16, fontWeight: FontWeight.w600)),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -266,14 +277,7 @@ class EmployeeCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
               ),
-              child: const Text(
-                'Delete',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: const Text('Delete', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w600)),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 _deleteEmployee(context, employeeId);
@@ -334,19 +338,16 @@ class EmployeeCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // --- THIS IS THE MODIFIED PART ---
                     Positioned(
-                      top: -12, // Adjust position to align with tap area
-                      right: -12, // Adjust position to align with tap area
+                      top: -12,
+                      right: -12,
                       child: IconButton(
                         icon: const Icon(Icons.more_horiz, color: kWhite),
                         onPressed: () {
-                          // Call the confirmation dialog when the button is pressed
                           _showDeleteConfirmationDialog(context, employee.id, employee.name);
                         },
                       ),
                     ),
-                    // --- END OF MODIFIED PART ---
                     Positioned(
                       bottom: 0,
                       right: 0,
@@ -378,7 +379,7 @@ class _BottomNavBar extends StatelessWidget {
       await FirebaseAuth.instance.signOut();
       if (!context.mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil(
-        '/login',
+        '/welcome',
             (Route<dynamic> route) => false,
       );
     } catch (e) {
@@ -400,26 +401,13 @@ class _BottomNavBar extends StatelessWidget {
         return AlertDialog(
           backgroundColor: kDarkBlue,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-          title: Text(
-            'Confirm Sign Out',
-            style: TextStyle(
-              color: kWhite,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          title: Text('Confirm Sign Out', style: TextStyle(color: kWhite, fontSize: 20, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text(
-                  'Are you sure you want to sign out?',
-                  style: TextStyle(color: kWhite, fontSize: 16),
-                ),
+                Text('Are you sure you want to sign out?', style: TextStyle(color: kWhite, fontSize: 16)),
                 const SizedBox(height: 8),
-                Text(
-                  'You will need to log in again to access your account.',
-                  style: TextStyle(color: kGreyText, fontSize: 14),
-                ),
+                Text('You will need to log in again to access your account.', style: TextStyle(color: kGreyText, fontSize: 14)),
               ],
             ),
           ),
@@ -431,14 +419,7 @@ class _BottomNavBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
               ),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: kWhite,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: Text('Cancel', style: TextStyle(color: kWhite, fontSize: 16, fontWeight: FontWeight.w600)),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -450,14 +431,7 @@ class _BottomNavBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
               ),
-              child: Text(
-                'Sign Out',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: Text('Sign Out', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w600)),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 _signOut(context);

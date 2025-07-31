@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ems/WelcomeScreen.dart';
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'EMS System',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home', // Set the initial route
+      initialRoute: FirebaseAuth.instance.currentUser != null ? '/home' : '/welcome',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
